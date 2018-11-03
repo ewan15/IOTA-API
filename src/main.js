@@ -1,4 +1,12 @@
-import {iota, Converter} from './IOTAPackages.js';
+import {iota, Converter, client} from './IOTAPackages.js';
+var async = require("async");
+
+
+let addressType = {address: String, hasRead: Boolean}
+
+let addressList = [];
+
+
 
 export let sendIOTA = function (seed,addr,amount,msg) {
     const transfers = [{
@@ -25,7 +33,63 @@ export let sendIOTA = function (seed,addr,amount,msg) {
         })
 }
 
-sendIOTA("EVRJHOK9UXEHGNMGOKAICDZPFESKZCJTMYYCILXOPFVXCVPXQDWEZSV9UVBBVHBWGWPJPXNFZORSSULOM",
-    "LOBHTGVOANUDADQOYHQOPNNHMRCPQKUTDXLGIGRHCFDPAIVJSFEYVHXMUMDBARJRMREZMW9AENXHNDIGWCZQWVGPHZ",
-    0,
-    "Hello bob");
+function generateAddress(seed) {
+
+    return new Promise((resolve, reject) => {
+        iota.getNewAddress(seed,{}, function(e, s) {
+            if (e) {
+                resolve(e)
+            } else {
+                sendIOTA(seed,s,0,"GenerateAddr");
+                resolve(s)
+
+            }
+        })
+    })
+}
+
+let onRecieveTransaction = function(func)
+{
+    iota.findTransactions({ addresses: addressList.address })
+        .then(hashes => {
+            if (!addressList.find(hashes).hasRead) {
+                addressList.find(hashes).hasRead = true;
+                func(hashes)
+            }
+        })
+        .catch(err => {
+            // handle errors here
+        })
+}
+
+export let ActivateOnReceieveTransaction = function(func)
+{
+    setInterval(function() {
+        onRecieveTransaction(func)
+    }, 5000);
+}
+
+let getBalance = function(seed)
+{
+    iota.getAccountData(seed, {
+        start: 0,
+        security: 2
+    })
+        .then(accountData => {
+            const { addresses, inputs, transactions, balance } = accountData
+            console.log(balance)
+            // ...
+        })
+        .catch(err => {
+            // ...
+        })
+}
+
+
+generateAddress("VVCNTEJLAXHSPHFICHRBFYYFN9WXJBVQSQWSAVQOFNVIPUYZHWSLFAKBGWBTYSJTEHWEUJBQXBEDSIQOC")
+    .then(value => {
+        console.log(value)
+    })
+    .catch(err =>{
+        console.log(err)
+    })
