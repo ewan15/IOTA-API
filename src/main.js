@@ -1,4 +1,6 @@
-import {iota, Converter} from './IOTAPackages.js';
+import {iota, Converter, client} from './IOTAPackages.js';
+var async = require("async");
+
 
 let addressType = {address: String, hasRead: Boolean}
 
@@ -31,16 +33,19 @@ export let sendIOTA = function (seed,addr,amount,msg) {
         })
 }
 
-export let generateAddress = function(seed) {
+function generateAddress(seed) {
 
-    return iota.getNewAddress(Converter.asciiToTrytes(seed))
-        .then(address => {
-            addressList.push(addressType[address, false])
-            address
-        })
-        .catch(err => {
+    return new Promise((resolve, reject) => {
+        iota.getNewAddress(seed,{}, function(e, s) {
+            if (e) {
+                resolve(e)
+            } else {
+                sendIOTA(seed,s,0,"GenerateAddr");
+                resolve(s)
 
+            }
         })
+    })
 }
 
 let onRecieveTransaction = function(func)
@@ -63,3 +68,28 @@ export let ActivateOnReceieveTransaction = function(func)
         onRecieveTransaction(func)
     }, 5000);
 }
+
+let getBalance = function(seed)
+{
+    iota.getAccountData(seed, {
+        start: 0,
+        security: 2
+    })
+        .then(accountData => {
+            const { addresses, inputs, transactions, balance } = accountData
+            console.log(balance)
+            // ...
+        })
+        .catch(err => {
+            // ...
+        })
+}
+
+
+generateAddress("VVCNTEJLAXHSPHFICHRBFYYFN9WXJBVQSQWSAVQOFNVIPUYZHWSLFAKBGWBTYSJTEHWEUJBQXBEDSIQOC")
+    .then(value => {
+        console.log(value)
+    })
+    .catch(err =>{
+        console.log(err)
+    })
