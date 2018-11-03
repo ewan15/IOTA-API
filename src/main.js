@@ -1,5 +1,11 @@
 import {iota, Converter} from './IOTAPackages.js';
 
+let addressType = {address: String, hasRead: Boolean}
+
+let addressList = [];
+
+
+
 export let sendIOTA = function (seed,addr,amount,msg) {
     const transfers = [{
         address: addr,
@@ -25,7 +31,35 @@ export let sendIOTA = function (seed,addr,amount,msg) {
         })
 }
 
-sendIOTA("EVRJHOK9UXEHGNMGOKAICDZPFESKZCJTMYYCILXOPFVXCVPXQDWEZSV9UVBBVHBWGWPJPXNFZORSSULOM",
-    "LOBHTGVOANUDADQOYHQOPNNHMRCPQKUTDXLGIGRHCFDPAIVJSFEYVHXMUMDBARJRMREZMW9AENXHNDIGWCZQWVGPHZ",
-    0,
-    "Hello bob");
+export let generateAddress = function(seed) {
+
+    return iota.getNewAddress(Converter.asciiToTrytes(seed))
+        .then(address => {
+            addressList.push(addressType[address, false])
+            address
+        })
+        .catch(err => {
+
+        })
+}
+
+let onRecieveTransaction = function(func)
+{
+    iota.findTransactions({ addresses: addressList.address })
+        .then(hashes => {
+            if (!addressList.find(hashes).hasRead) {
+                addressList.find(hashes).hasRead = true;
+                func(hashes)
+            }
+        })
+        .catch(err => {
+            // handle errors here
+        })
+}
+
+export let ActivateOnReceieveTransaction = function(func)
+{
+    setInterval(function() {
+        onRecieveTransaction(func)
+    }, 5000);
+}
