@@ -14,13 +14,18 @@ export let sendIOTA = function (seed,addr,amount,msg) {
             // be recovered by querying the network after broadcasting.
 
             // Does tip selection, attaches to tangle by doing PoW and broadcasts.
-            return iota.sendTrytes(trytes, depth, minWeightMagnitude)
+            return iota.sendTrytes(trytes, 3, 14)
         })
         .then(bundle => {
             console.log(`Published transaction with tail hash: ${bundle[0].hash}`)
             console.log(`Bundle: ${bundle}`)
         })
         .catch(err => {
-            // catch any errors
+            console.log(err)
         })
 }
+
+sendIOTA("EVRJHOK9UXEHGNMGOKAICDZPFESKZCJTMYYCILXOPFVXCVPXQDWEZSV9UVBBVHBWGWPJPXNFZORSSULOM",
+    "LOBHTGVOANUDADQOYHQOPNNHMRCPQKUTDXLGIGRHCFDPAIVJSFEYVHXMUMDBARJRMREZMW9AENXHNDIGWCZQWVGPHZ",
+    0,
+    "Hello bob");
